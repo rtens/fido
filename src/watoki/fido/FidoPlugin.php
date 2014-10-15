@@ -31,17 +31,22 @@ class FidoPlugin implements PluginInterface {
 
         if (isset($extra[self::REQUIRE_ASSETS_KEY])) {
             foreach ($extra[self::REQUIRE_ASSETS_KEY] as $key => $value) {
-                if (substr($key, -4) == '.git') {
-                    $name = substr(basename($key), 0, -4);
+                $source = $key;
+                if (isset($value['source'])) {
+                    $source = $value['source'];
+                }
+
+                if (substr($source, -4) == '.git') {
+                    $name = substr(basename($source), 0, -4);
                     $dir = $baseDir . DIRECTORY_SEPARATOR . $name;
 
                     if (file_exists($dir)) {
-                        $io->write("Fido: Updating $key ...");
+                        $io->write("Fido: Updating $source ...");
                         $gitCommand = "git pull origin master";
                     } else {
-                        $io->write("Fido: Cloning $key ...");
+                        $io->write("Fido: Cloning $source ...");
                         $dir = $baseDir;
-                        $gitCommand = "git clone " . $key;
+                        $gitCommand = "git clone " . $source;
                     }
 
                     if (!file_exists($dir)) {
@@ -49,12 +54,12 @@ class FidoPlugin implements PluginInterface {
                     }
                     $this->executor->execute("cd $dir && " . $gitCommand);
                 } else {
-                    $file = $baseDir . DIRECTORY_SEPARATOR . basename($key);
+                    $file = $baseDir . DIRECTORY_SEPARATOR . basename($source);
                     if (!file_exists(dirname($file))) {
                         mkdir(dirname($file), 0777, true);
                     }
-                    $io->write("Fido: Downloading $key ...");
-                    file_put_contents($file, fopen($key, 'r'));
+                    $io->write("Fido: Downloading $source ...");
+                    file_put_contents($file, fopen($source, 'r'));
                 }
 
                 $io->write("Fido: Done.");

@@ -19,8 +19,28 @@ use watoki\scrut\Specification;
  */
 class FromFileTest extends Specification {
 
-    function testJustFileName() {
+    protected function background() {
         $this->file->givenTheRemoteFile_Containing("http://example.com/some/file.txt", "Got me");
+    }
+
+    function testJustSource() {
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "require-assets": {
+                    "some asset": {
+                        "source":"http://example.com/some/file.txt"
+                    }
+                }
+            }
+        }');
+        $this->fido->whenIRunThePlugin();
+        $this->fido->thenTheOutputShouldBe(
+                'Fido: Downloading $root/some/file.txt ...' .
+                'Fido: Done.');
+        $this->file->thenThereShouldBeAFile_Containing("assets/vendor/file.txt", "Got me");
+    }
+
+    function testSourceAsKey() {
         $this->fido->givenTheComposerJson('{
             "extra":{
                 "require-assets": {

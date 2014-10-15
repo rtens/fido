@@ -15,7 +15,9 @@ class FromRepositoryTest extends Specification {
         $this->fido->givenTheComposerJson('{
             "extra":{
                 "require-assets": {
-                    "https://example.com/some/repo.git":{}
+                    "some repo": {
+                        "source":"https://example.com/some/repo.git"
+                    }
                 }
             }
         }');
@@ -32,7 +34,9 @@ class FromRepositoryTest extends Specification {
         $this->fido->givenTheComposerJson('{
             "extra":{
                 "require-assets": {
-                    "https://example.com/some/repo.git":{}
+                    "some repo": {
+                        "source":"https://example.com/some/repo.git"
+                    }
                 }
             }
         }');
@@ -41,6 +45,22 @@ class FromRepositoryTest extends Specification {
                 'Fido: Updating https://example.com/some/repo.git ...' .
                 'Fido: Done.');
         $this->fido->thenItShouldExecute('cd $root/assets/vendor/repo && git pull origin master');
+    }
+
+    function testSourceAsKey() {
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "require-assets": {
+                    "https://example.com/some/repo.git":{}
+                }
+            }
+        }');
+        $this->fido->whenIRunThePlugin();
+        $this->fido->thenTheOutputShouldBe(
+                'Fido: Cloning https://example.com/some/repo.git ...' .
+                'Fido: Done.');
+        $this->file->thenThereShouldBeADirectory('assets/vendor');
+        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git');
     }
 
 } 
