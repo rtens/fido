@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\fido;
+namespace spec\watoki\fido\fixture;
 
 use watoki\fido\Executor;
 
