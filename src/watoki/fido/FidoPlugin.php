@@ -7,6 +7,7 @@ use Composer\Installer\InstallerEvent;
 use Composer\Installer\InstallerEvents;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
+use Composer\Script\ScriptEvents;
 
 class FidoPlugin implements PluginInterface, EventSubscriberInterface {
 
@@ -29,6 +30,14 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         $this->executor = $executor ? : new Executor();
     }
 
+    public static function getSubscribedEvents() {
+        return array(
+                ScriptEvents::POST_AUTOLOAD_DUMP => array(
+                        array('run', 0),
+                ),
+        );
+    }
+
     /**
      * Apply plugin modifications to composer
      *
@@ -40,7 +49,7 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         $this->io = $io;
     }
 
-    public function onPostDependenciesSolving() {
+    public function run() {
         $baseDir = $this->root . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'vendor';
 
         if (isset($this->extra[self::REQUIRE_ASSETS_KEY])) {
@@ -123,13 +132,5 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         }
         $this->io->write("Fido: Downloading $source to $file ...");
         file_put_contents($file, fopen($source, 'r'));
-    }
-
-    public static function getSubscribedEvents() {
-        return array(
-                InstallerEvents::POST_DEPENDENCIES_SOLVING => array(
-                        array('onPostDependenciesSolving', 0),
-                ),
-        );
     }
 }
