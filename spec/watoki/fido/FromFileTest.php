@@ -1,12 +1,7 @@
 <?php
 namespace spec\watoki\fido;
 
-use Composer\Composer;
 use Composer\Config;
-use Composer\IO\BufferIO;
-use Composer\IO\NullIO;
-use Composer\Json\JsonFile;
-use Composer\Package\Loader\ArrayLoader;
 use spec\watoki\fido\fixture\FidoFixture;
 use spec\watoki\fido\fixture\FileFixture;
 use spec\watoki\fido\fixture\TestExecutorStub;
