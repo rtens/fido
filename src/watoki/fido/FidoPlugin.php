@@ -2,16 +2,27 @@
 namespace watoki\fido;
 
 use Composer\Composer;
+use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Installer\InstallerEvent;
+use Composer\Installer\InstallerEvents;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 
-class FidoPlugin implements PluginInterface {
+class FidoPlugin implements PluginInterface, EventSubscriberInterface {
 
     const REQUIRE_ASSETS_KEY = 'require-assets';
 
+    /** @var string */
     private $root;
 
+    /** @var \watoki\fido\Executor */
     private $executor;
+
+    /** @var array */
+    private $extra;
+
+    /** @var IOInterface */
+    private $io;
 
     function __construct($rootDir = '.', Executor $executor = null) {
         $this->root = $rootDir;
@@ -25,12 +36,15 @@ class FidoPlugin implements PluginInterface {
      * @param IOInterface $io
      */
     public function activate(Composer $composer, IOInterface $io) {
-        $extra = $composer->getPackage()->getExtra();
+        $this->extra = $composer->getPackage()->getExtra();
+        $this->io = $io;
+    }
 
+    public function onPostDependenciesSolving() {
         $baseDir = $this->root . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'vendor';
 
-        if (isset($extra[self::REQUIRE_ASSETS_KEY])) {
-            foreach ($extra[self::REQUIRE_ASSETS_KEY] as $key => $value) {
+        if (isset($this->extra[self::REQUIRE_ASSETS_KEY])) {
+            foreach ($this->extra[self::REQUIRE_ASSETS_KEY] as $key => $value) {
                 if ($key == 'base-dir') {
                     $baseDir = $this->root . DIRECTORY_SEPARATOR . $value;
                     continue;
@@ -42,17 +56,17 @@ class FidoPlugin implements PluginInterface {
                 }
 
                 if (substr($source, -4) == '.git') {
-                    $this->installRepository($baseDir, $source, $value, $io);
+                    $this->installRepository($baseDir, $source, $value);
                 } else {
-                    $this->installFile($baseDir, $source, $value, $io);
+                    $this->installFile($baseDir, $source, $value);
                 }
 
-                $io->write("Fido: Done.");
+                $this->io->write("Fido: Done.");
             }
         }
     }
 
-    private function installRepository($baseDir, $source, $data, IOInterface $io) {
+    private function installRepository($baseDir, $source, $data) {
         $name = substr(basename($source), 0, -4);
 
         if (is_string($data)) {
@@ -69,17 +83,17 @@ class FidoPlugin implements PluginInterface {
         $targetDir = $baseDir . DIRECTORY_SEPARATOR . $target;
 
         if (file_exists($targetDir)) {
-            $io->write("Fido: Updating $source ...");
+            $this->io->write("Fido: Updating $source ...");
             $gitCommand = "git pull origin master 2>&1 && cd ..";
         } else {
-            $io->write("Fido: Cloning $source to $targetDir ...");
+            $this->io->write("Fido: Cloning $source to $targetDir ...");
             $targetDir = dirname($targetDir);
             $gitCommand = "git clone $source $name 2>&1";
         }
 
         if (isset($data['tag'])) {
             $tag = $data['tag'];
-            $io->write("Fido: Using tag $tag");
+            $this->io->write("Fido: Using tag $tag");
             $gitCommand .= " && cd $name && git checkout $tag 2>&1";
         }
 
@@ -90,7 +104,7 @@ class FidoPlugin implements PluginInterface {
         $this->executor->execute($command);
     }
 
-    private function installFile($baseDir, $source, $data, IOInterface $io) {
+    private function installFile($baseDir, $source, $data) {
         $target = basename($source);
 
         if (is_string($data)) {
@@ -107,7 +121,15 @@ class FidoPlugin implements PluginInterface {
         if (!file_exists(dirname($file))) {
             mkdir(dirname($file), 0777, true);
         }
-        $io->write("Fido: Downloading $source to $file ...");
+        $this->io->write("Fido: Downloading $source to $file ...");
         file_put_contents($file, fopen($source, 'r'));
+    }
+
+    public static function getSubscribedEvents() {
+        return array(
+                InstallerEvents::POST_DEPENDENCIES_SOLVING => array(
+                        array('onPostDependenciesSolving', 0),
+                ),
+        );
     }
 }
