@@ -31,7 +31,7 @@
         }
     },
     "extra": {
-        "class": "watoki\\fido\\Plugin"
+        "class": "watoki\\fido\\FidoPlugin"
     },
     "minimum-stability": "dev"
 }
