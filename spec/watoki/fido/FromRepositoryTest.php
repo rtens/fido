@@ -100,4 +100,19 @@ class FromRepositoryTest extends Specification {
         $this->fido->thenTheOutputShouldContain('Using tag some_tag');
     }
 
+    function testSpecifyType() {
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "require-assets": {
+                    "some repo": {
+                        "source":"https://example.com/some/repo",
+                        "type":"git"
+                    }
+                }
+            }
+        }');
+        $this->fido->whenIRunThePlugin();
+        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo');
+    }
+
 } 

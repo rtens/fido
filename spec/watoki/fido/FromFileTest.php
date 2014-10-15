@@ -87,4 +87,20 @@ class FromFileTest extends Specification {
         $this->file->thenThereShouldBeAFile_Containing("assets/vendor/my/target.txt", "Got me");
     }
 
+    function testSpecifyType() {
+        $this->file->givenTheRemoteFile_Containing("http://example.com/some/file.git", "Got git");
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "require-assets": {
+                    "some asset": {
+                        "source":"http://example.com/some/file.git",
+                        "type":"file"
+                    }
+                }
+            }
+        }');
+        $this->fido->whenIRunThePlugin();
+        $this->file->thenThereShouldBeAFile_Containing("assets/vendor/file.git", "Got git");
+    }
+
 } 

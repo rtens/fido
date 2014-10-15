@@ -65,10 +65,17 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
                     $source = $value['source'];
                 }
 
-                if (substr($source, -4) == '.git') {
+                $type = substr($source, -4) == '.git' ? 'git' : 'file';
+                if (isset($value['type'])) {
+                    $type = $value['type'];
+                }
+
+                if ($type == 'git') {
                     $this->installRepository($baseDir, $source, $value);
-                } else {
+                } else if ($type == 'file') {
                     $this->installFile($baseDir, $source, $value);
+                } else {
+                    throw new \Exception("Cannot require asset [$key] of type [$type]: Unkown type");
                 }
 
                 $this->io->write("      Done.");
