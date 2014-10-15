@@ -29,9 +29,7 @@ class FromFileTest extends Specification {
             }
         }');
         $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldBe(
-                'Fido: Downloading $root/some/file.txt to $root/assets/vendor/file.txt ...' .
-                'Fido: Done.');
+        $this->fido->thenTheOutputShouldContain('Downloading $root/some/file.txt to $root/assets/vendor/file.txt');
         $this->file->thenThereShouldBeAFile_Containing("assets/vendor/file.txt", "Got me");
     }
 
@@ -88,7 +86,5 @@ class FromFileTest extends Specification {
         $this->fido->whenIRunThePlugin();
         $this->file->thenThereShouldBeAFile_Containing("assets/vendor/my/target.txt", "Got me");
     }
-
-    #############################################################################################
 
 } 

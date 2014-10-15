@@ -51,6 +51,7 @@ class FidoFixture extends Fixture {
 
         $plugin = new FidoPlugin($this->file->tmpDir, $this->executor);
         $plugin->activate($composer, $this->io);
+        $plugin->run();
     }
 
     public function thenTheOutputShouldBe($output) {
