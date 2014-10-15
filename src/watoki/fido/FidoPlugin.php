@@ -71,7 +71,7 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
                     $this->installFile($baseDir, $source, $value);
                 }
 
-                $this->io->write("Fido: Done.");
+                $this->io->write("      Done.");
             }
         }
     }
@@ -103,7 +103,7 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
 
         if (isset($data['tag'])) {
             $tag = $data['tag'];
-            $this->io->write("Fido: Using tag $tag");
+            $this->io->write("      Using tag $tag");
             $gitCommand .= " && cd $name && git checkout $tag 2>&1";
         }
 
