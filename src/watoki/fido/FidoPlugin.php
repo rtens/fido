@@ -36,8 +36,10 @@ class FidoPlugin implements PluginInterface {
                     $dir = $baseDir . DIRECTORY_SEPARATOR . $name;
 
                     if (file_exists($dir)) {
+                        $io->write("Fido: Updating $key ...");
                         $gitCommand = "git pull origin master";
                     } else {
+                        $io->write("Fido: Cloning $key ...");
                         $dir = $baseDir;
                         $gitCommand = "git clone " . $key;
                     }
@@ -51,8 +53,11 @@ class FidoPlugin implements PluginInterface {
                     if (!file_exists(dirname($file))) {
                         mkdir(dirname($file), 0777, true);
                     }
+                    $io->write("Fido: Downloading $key ...");
                     file_put_contents($file, fopen($key, 'r'));
                 }
+
+                $io->write("Fido: Done.");
             }
         }
     }

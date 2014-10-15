@@ -3,6 +3,7 @@ namespace spec\watoki\fido;
 
 use Composer\Composer;
 use Composer\Config;
+use Composer\IO\BufferIO;
 use Composer\IO\NullIO;
 use Composer\Json\JsonFile;
 use Composer\Package\Loader\ArrayLoader;
@@ -21,6 +22,9 @@ class DownloadFileTest extends Specification {
             }
         }');
         $this->whenIRunThePlugin();
+        $this->thenTheOutputShouldBe(
+                'Fido: Downloading $root/some/file.txt ...' .
+                'Fido: Done.');
         $this->thenThereShouldBeAFile_Containing("assets/vendor/file.txt", "Got me");
     }
 
@@ -33,6 +37,9 @@ class DownloadFileTest extends Specification {
             }
         }');
         $this->whenIRunThePlugin();
+        $this->thenTheOutputShouldBe(
+                'Fido: Cloning https://example.com/some/repo.git ...' .
+                'Fido: Done.');
         $this->thenThereShouldBeADirectory('assets/vendor');
         $this->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git');
     }
@@ -47,10 +54,16 @@ class DownloadFileTest extends Specification {
             }
         }');
         $this->whenIRunThePlugin();
+        $this->thenTheOutputShouldBe(
+                'Fido: Updating https://example.com/some/repo.git ...' .
+                'Fido: Done.');
         $this->thenItShouldExecute('cd $root/assets/vendor/repo && git pull origin master');
     }
 
     #############################################################################################
+
+    /** @var BufferIO */
+    private $io;
 
     private $tmpDir;
 
@@ -109,7 +122,7 @@ class DownloadFileTest extends Specification {
 
     private function whenIRunThePlugin() {
         $composer = new Composer();
-        $io = new NullIO();
+        $this->io = new BufferIO();
 
         $file = new JsonFile($this->composerFile);
         $localConfig = $file->read();
@@ -124,17 +137,13 @@ class DownloadFileTest extends Specification {
         $composer->setPackage($package);
 
         $plugin = new FidoPlugin($this->tmpDir, $this->executor);
-        $plugin->activate($composer, $io);
+        $plugin->activate($composer, $this->io);
     }
 
     private function thenThereShouldBeAFile_Containing($file, $content) {
         $fullPath = $this->tmpDir . DIRECTORY_SEPARATOR . $file;
         $this->assertFileExists($fullPath);
         $this->assertEquals($content, file_get_contents($fullPath));
-    }
-
-    private function makeLocal($file) {
-        return str_replace('http://example.com/', $this->tmpDir, $file);
     }
 
     private function thenThereShouldBeADirectory($path) {
@@ -144,12 +153,23 @@ class DownloadFileTest extends Specification {
 
     private function thenItShouldExecute($string) {
         foreach ($this->executor->executedCommands as $command) {
-            $command = str_replace($this->tmpDir, '$root', $command);
-            if ($command == $string) {
+            if ($this->makeRooted($command) == $string) {
                 return;
             }
         }
         $this->fail("Could not find [$string] in " . print_r($this->executor->executedCommands, true));
+    }
+
+    private function thenTheOutputShouldBe($output) {
+        $this->assertEquals($output, str_replace("\n", "", $this->makeRooted($this->io->getOutput())));
+    }
+
+    private function makeLocal($file) {
+        return str_replace('http://example.com', $this->tmpDir, $file);
+    }
+
+    private function makeRooted($command) {
+        return str_replace($this->tmpDir, '$root', $command);
     }
 
 } 
