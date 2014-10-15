@@ -78,7 +78,7 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
                     throw new \Exception("Cannot require asset [$key] of type [$type]: Unkown type");
                 }
 
-                $this->io->write("      Done.");
+                $this->io->write("    Done.");
             }
         }
     }
@@ -100,17 +100,17 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         $targetDir = $baseDir . DIRECTORY_SEPARATOR . $target;
 
         if (file_exists($targetDir)) {
-            $this->io->write("Fido: Updating $source ...");
+            $this->io->write("  - Updating $source ...");
             $gitCommand = "git pull origin master 2>&1 && cd ..";
         } else {
-            $this->io->write("Fido: Cloning $source to $targetDir ...");
+            $this->io->write("  - Cloning $source to $targetDir ...");
             $targetDir = dirname($targetDir);
             $gitCommand = "git clone $source $name 2>&1";
         }
 
         if (isset($data['tag'])) {
             $tag = $data['tag'];
-            $this->io->write("      Using tag $tag");
+            $this->io->write("    Using tag $tag");
             $gitCommand .= " && cd $name && git checkout $tag 2>&1";
         }
 
@@ -138,7 +138,7 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         if (!file_exists(dirname($file))) {
             mkdir(dirname($file), 0777, true);
         }
-        $this->io->write("Fido: Downloading $source to $file ...");
+        $this->io->write("  - Downloading $source to $file ...");
         file_put_contents($file, fopen($source, 'r'));
     }
 }
