@@ -54,7 +54,8 @@ class FidoPlugin implements PluginInterface {
 
     private function installRepository($baseDir, $source, $data, IOInterface $io) {
         $name = substr(basename($source), 0, -4);
-        $dir = $baseDir . DIRECTORY_SEPARATOR . $name;
+        $targetDir = $baseDir . DIRECTORY_SEPARATOR . $name;
+        $dir = $targetDir;
 
         if (is_string($data)) {
             $data = array(
@@ -74,7 +75,7 @@ class FidoPlugin implements PluginInterface {
         if (isset($data['tag'])) {
             $tag = $data['tag'];
             $io->write("Fido: Using tag $tag");
-            $gitCommand .= " && cd $name && git checkout $tag";
+            $gitCommand .= " && cd $targetDir && git checkout $tag";
         }
 
         if (!file_exists($dir)) {

@@ -63,7 +63,7 @@ class FromRepositoryTest extends Specification {
                 'Fido: Cloning https://example.com/some/repo.git ...' .
                 'Fido: Using tag some_tag' .
                 'Fido: Done.');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git && cd repo && git checkout some_tag');
+        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git && cd $root/assets/vendor/repo && git checkout some_tag');
     }
 
     function testSourceAsKey() {
@@ -75,7 +75,9 @@ class FromRepositoryTest extends Specification {
             }
         }');
         $this->fido->whenIRunThePlugin();
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git');
+        $this->fido->thenTheOutputShouldBe(
+                'Fido: Cloning https://example.com/some/repo.git ...' .
+                'Fido: Done.');
     }
 
     function testTagAsValue() {
@@ -87,7 +89,10 @@ class FromRepositoryTest extends Specification {
             }
         }');
         $this->fido->whenIRunThePlugin();
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git && cd repo && git checkout some_tag');
+        $this->fido->thenTheOutputShouldBe(
+                'Fido: Cloning https://example.com/some/repo.git ...' .
+                'Fido: Using tag some_tag' .
+                'Fido: Done.');
     }
 
 } 
