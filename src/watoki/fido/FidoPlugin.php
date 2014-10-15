@@ -54,8 +54,6 @@ class FidoPlugin implements PluginInterface {
 
     private function installRepository($baseDir, $source, $data, IOInterface $io) {
         $name = substr(basename($source), 0, -4);
-        $targetDir = $baseDir . DIRECTORY_SEPARATOR . $name;
-        $dir = $targetDir;
 
         if (is_string($data)) {
             $data = array(
@@ -63,13 +61,20 @@ class FidoPlugin implements PluginInterface {
             );
         }
 
-        if (file_exists($dir)) {
+        $target = $name;
+        if (isset($data['target'])) {
+            $target = $data['target'];
+            $name = basename($target);
+        }
+        $targetDir = $baseDir . DIRECTORY_SEPARATOR . $target;
+
+        if (file_exists($targetDir)) {
             $io->write("Fido: Updating $source ...");
             $gitCommand = "git pull origin master 2>&1 && cd ..";
         } else {
-            $io->write("Fido: Cloning $source ...");
-            $dir = $baseDir;
-            $gitCommand = "git clone $source 2>&1";
+            $io->write("Fido: Cloning $source to $targetDir ...");
+            $targetDir = dirname($targetDir);
+            $gitCommand = "git clone $source $name 2>&1";
         }
 
         if (isset($data['tag'])) {
@@ -78,10 +83,10 @@ class FidoPlugin implements PluginInterface {
             $gitCommand .= " && cd $name && git checkout $tag 2>&1";
         }
 
-        if (!file_exists($dir)) {
-            mkdir($dir, 0777, true);
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
         }
-        $command = "cd $dir && " . $gitCommand;
+        $command = "cd $targetDir && " . $gitCommand;
         $this->executor->execute($command);
     }
 

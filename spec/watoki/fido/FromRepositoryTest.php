@@ -22,11 +22,9 @@ class FromRepositoryTest extends Specification {
             }
         }');
         $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldBe(
-                'Fido: Cloning https://example.com/some/repo.git ...' .
-                'Fido: Done.');
+        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo.git');
         $this->file->thenThereShouldBeADirectory('assets/vendor');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git 2>&1');
+        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git repo 2>&1');
     }
 
     function testUpdateRepository() {
@@ -41,9 +39,7 @@ class FromRepositoryTest extends Specification {
             }
         }');
         $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldBe(
-                'Fido: Updating https://example.com/some/repo.git ...' .
-                'Fido: Done.');
+        $this->fido->thenTheOutputShouldContain('Updating https://example.com/some/repo.git');
         $this->fido->thenItShouldExecute('cd $root/assets/vendor/repo && git pull origin master 2>&1 && cd ..');
     }
 
@@ -59,11 +55,24 @@ class FromRepositoryTest extends Specification {
             }
         }');
         $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldBe(
-                'Fido: Cloning https://example.com/some/repo.git ...' .
-                'Fido: Using tag some_tag' .
-                'Fido: Done.');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git 2>&1 && cd repo && git checkout some_tag 2>&1');
+        $this->fido->thenTheOutputShouldContain('Using tag some_tag');
+        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git repo 2>&1 && cd repo && git checkout some_tag 2>&1');
+    }
+
+    function testSpecifyTargetFolder() {
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "require-assets": {
+                    "some repo": {
+                        "source":"https://example.com/some/repo.git",
+                        "target":"my/target"
+                    }
+                }
+            }
+        }');
+        $this->fido->whenIRunThePlugin();
+        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo.git to $root/assets/vendor/my/target');
+        $this->fido->thenItShouldExecute('cd $root/assets/vendor/my && git clone https://example.com/some/repo.git target 2>&1');
     }
 
     function testSourceAsKey() {
@@ -75,9 +84,7 @@ class FromRepositoryTest extends Specification {
             }
         }');
         $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldBe(
-                'Fido: Cloning https://example.com/some/repo.git ...' .
-                'Fido: Done.');
+        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo.git');
     }
 
     function testTagAsValue() {
@@ -89,10 +96,8 @@ class FromRepositoryTest extends Specification {
             }
         }');
         $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldBe(
-                'Fido: Cloning https://example.com/some/repo.git ...' .
-                'Fido: Using tag some_tag' .
-                'Fido: Done.');
+        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo.git');
+        $this->fido->thenTheOutputShouldContain('Using tag some_tag');
     }
 
 } 

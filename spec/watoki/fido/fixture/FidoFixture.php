@@ -57,6 +57,10 @@ class FidoFixture extends Fixture {
         $this->spec->assertEquals($output, str_replace("\n", "", $this->file->makeRooted($this->io->getOutput())));
     }
 
+    public function thenTheOutputShouldContain($string) {
+        $this->spec->assertContains($string, $this->file->makeRooted($this->io->getOutput()));
+    }
+
     public function thenItShouldExecute($string) {
         foreach ($this->executor->executedCommands as $command) {
             if ($this->file->makeRooted($command) == $string) {
