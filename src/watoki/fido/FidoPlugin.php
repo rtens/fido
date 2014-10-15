@@ -31,6 +31,11 @@ class FidoPlugin implements PluginInterface {
 
         if (isset($extra[self::REQUIRE_ASSETS_KEY])) {
             foreach ($extra[self::REQUIRE_ASSETS_KEY] as $key => $value) {
+                if ($key == 'base-dir') {
+                    $baseDir = $this->root . DIRECTORY_SEPARATOR . $value;
+                    continue;
+                }
+
                 $source = $key;
                 if (isset($value['source'])) {
                     $source = $value['source'];
@@ -63,7 +68,7 @@ class FidoPlugin implements PluginInterface {
                     if (!file_exists(dirname($file))) {
                         mkdir(dirname($file), 0777, true);
                     }
-                    $io->write("Fido: Downloading $source to $target ...");
+                    $io->write("Fido: Downloading $source to $file ...");
                     file_put_contents($file, fopen($source, 'r'));
                 }
 
