@@ -65,23 +65,24 @@ class FidoPlugin implements PluginInterface {
 
         if (file_exists($dir)) {
             $io->write("Fido: Updating $source ...");
-            $gitCommand = "git pull origin master";
+            $gitCommand = "git pull origin master 2>&1 && cd ..";
         } else {
             $io->write("Fido: Cloning $source ...");
             $dir = $baseDir;
-            $gitCommand = "git clone " . $source;
+            $gitCommand = "git clone $source 2>&1";
         }
 
         if (isset($data['tag'])) {
             $tag = $data['tag'];
             $io->write("Fido: Using tag $tag");
-            $gitCommand .= " && cd $targetDir && git checkout $tag";
+            $gitCommand .= " && cd $name && git checkout $tag 2>&1";
         }
 
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
         }
-        $this->executor->execute("cd $dir && " . $gitCommand);
+        $command = "cd $dir && " . $gitCommand;
+        $this->executor->execute($command);
     }
 
     private function installFile($baseDir, $source, $data, IOInterface $io) {

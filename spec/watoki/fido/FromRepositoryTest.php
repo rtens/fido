@@ -26,7 +26,7 @@ class FromRepositoryTest extends Specification {
                 'Fido: Cloning https://example.com/some/repo.git ...' .
                 'Fido: Done.');
         $this->file->thenThereShouldBeADirectory('assets/vendor');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git');
+        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git 2>&1');
     }
 
     function testUpdateRepository() {
@@ -44,7 +44,7 @@ class FromRepositoryTest extends Specification {
         $this->fido->thenTheOutputShouldBe(
                 'Fido: Updating https://example.com/some/repo.git ...' .
                 'Fido: Done.');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor/repo && git pull origin master');
+        $this->fido->thenItShouldExecute('cd $root/assets/vendor/repo && git pull origin master 2>&1 && cd ..');
     }
 
     function testSpecifyTag() {
@@ -63,7 +63,7 @@ class FromRepositoryTest extends Specification {
                 'Fido: Cloning https://example.com/some/repo.git ...' .
                 'Fido: Using tag some_tag' .
                 'Fido: Done.');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git && cd $root/assets/vendor/repo && git checkout some_tag');
+        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git 2>&1 && cd repo && git checkout some_tag 2>&1');
     }
 
     function testSourceAsKey() {
