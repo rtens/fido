@@ -14,7 +14,7 @@ use watoki\scrut\Specification;
  */
 class FromFileTest extends Specification {
 
-    protected function background() {
+    public function background() {
         $this->file->givenTheRemoteFile_Containing("http://example.com/some/file.txt", "Got me");
     }
 
