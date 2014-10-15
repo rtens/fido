@@ -54,11 +54,16 @@ class FidoPlugin implements PluginInterface {
                     }
                     $this->executor->execute("cd $dir && " . $gitCommand);
                 } else {
-                    $file = $baseDir . DIRECTORY_SEPARATOR . basename($source);
+                    $target = basename($source);
+                    if (isset($value['target'])) {
+                        $target = $value['target'];
+                    }
+
+                    $file = $baseDir . DIRECTORY_SEPARATOR . $target;
                     if (!file_exists(dirname($file))) {
                         mkdir(dirname($file), 0777, true);
                     }
-                    $io->write("Fido: Downloading $source ...");
+                    $io->write("Fido: Downloading $source to $target ...");
                     file_put_contents($file, fopen($source, 'r'));
                 }
 

@@ -35,9 +35,27 @@ class FromFileTest extends Specification {
         }');
         $this->fido->whenIRunThePlugin();
         $this->fido->thenTheOutputShouldBe(
-                'Fido: Downloading $root/some/file.txt ...' .
+                'Fido: Downloading $root/some/file.txt to file.txt ...' .
                 'Fido: Done.');
         $this->file->thenThereShouldBeAFile_Containing("assets/vendor/file.txt", "Got me");
+    }
+
+    function testWithTarget() {
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "require-assets": {
+                    "some asset": {
+                        "source":"http://example.com/some/file.txt",
+                        "target":"my/asset.js"
+                    }
+                }
+            }
+        }');
+        $this->fido->whenIRunThePlugin();
+        $this->fido->thenTheOutputShouldBe(
+                'Fido: Downloading $root/some/file.txt to my/asset.js ...' .
+                'Fido: Done.');
+        $this->file->thenThereShouldBeAFile_Containing("assets/vendor/my/asset.js", "Got me");
     }
 
     function testSourceAsKey() {
@@ -50,7 +68,7 @@ class FromFileTest extends Specification {
         }');
         $this->fido->whenIRunThePlugin();
         $this->fido->thenTheOutputShouldBe(
-                'Fido: Downloading $root/some/file.txt ...' .
+                'Fido: Downloading $root/some/file.txt to file.txt ...' .
                 'Fido: Done.');
         $this->file->thenThereShouldBeAFile_Containing("assets/vendor/file.txt", "Got me");
     }
