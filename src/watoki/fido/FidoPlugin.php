@@ -32,7 +32,10 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
 
     public static function getSubscribedEvents() {
         return array(
-                ScriptEvents::POST_AUTOLOAD_DUMP => array(
+                ScriptEvents::POST_UPDATE_CMD => array(
+                        array('run', 0),
+                ),
+                ScriptEvents::POST_INSTALL_CMD => array(
                         array('run', 0),
                 ),
         );
