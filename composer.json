@@ -1,0 +1,37 @@
+{
+    "name": "watoki/fido",
+    "description": "Asset fetcher for PHP",
+    "keywords": ["asset", "composer", "watoki"],
+    "homepage": "http://github.com/watoki/fido",
+    "type": "composer-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nikolas Martens",
+            "email": "Nikolas.M@rtens.org",
+            "homepage": "http://rtens.org"
+        }
+    ],
+    "require": {
+        "php": ">=5.3",
+        "composer-plugin-api": "1.0.0"
+    },
+    "require-dev": {
+        "composer/composer": "~1.0@dev",
+        "watoki/scrut":"*"
+    },
+    "autoload": {
+        "psr-4": {
+            "watoki\\": "src/watoki"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "spec\\watoki\\": "spec/watoki"
+        }
+    },
+    "extra": {
+        "class": "watoki\\fido\\Plugin"
+    },
+    "minimum-stability": "dev"
+}
