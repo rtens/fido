@@ -60,6 +60,12 @@ class FidoPlugin implements PluginInterface {
                     $this->executor->execute("cd $dir && " . $gitCommand);
                 } else {
                     $target = basename($source);
+
+                    if (is_string($value)) {
+                        $value = array(
+                                'target' => $value
+                        );
+                    }
                     if (isset($value['target'])) {
                         $target = $value['target'];
                     }

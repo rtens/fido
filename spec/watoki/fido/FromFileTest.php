@@ -82,6 +82,18 @@ class FromFileTest extends Specification {
         $this->file->thenThereShouldBeAFile_Containing("assets/vendor/file.txt", "Got me");
     }
 
+    function testTargetAsValue() {
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "require-assets": {
+                    "http://example.com/some/file.txt":"my/target.txt"
+                }
+            }
+        }');
+        $this->fido->whenIRunThePlugin();
+        $this->file->thenThereShouldBeAFile_Containing("assets/vendor/my/target.txt", "Got me");
+    }
+
     #############################################################################################
 
 } 
