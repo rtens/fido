@@ -46,6 +46,6 @@ The asset requirements go into the `extra` part of the `composer.json`
 
 ## Documentation ##
 
-For further documentation, check out *fido*'s [executable documentation][doc]
+For further documentation, check out *fido*'s [executable documentation][dox]
 
 [dox]: http://dox.rtens.org/projects/watoki-fido
