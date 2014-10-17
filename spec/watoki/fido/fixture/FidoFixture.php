@@ -1,11 +1,20 @@
 <?php
 namespace spec\watoki\fido\fixture;
 
+use Composer\Cache;
+use Composer\Command\UpdateCommand;
 use Composer\Composer;
 use Composer\Config;
+use Composer\Downloader\FileDownloader;
+use Composer\Downloader\GitDownloader;
+use Composer\Factory;
 use Composer\IO\BufferIO;
 use Composer\Json\JsonFile;
 use Composer\Package\Loader\ArrayLoader;
+use Composer\Package\Locker;
+use Composer\Script\Event;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use watoki\fido\FidoPlugin;
 use watoki\scrut\Fixture;
 
@@ -14,44 +23,54 @@ use watoki\scrut\Fixture;
  */
 class FidoFixture extends Fixture {
 
+    private $remoteFiles = array();
+
+    private $json = array();
+
+    /** @var TestProcessExecutorMock */
+    private $executor;
+
     /** @var BufferIO */
-    public $io;
-
-    /** @var TestExecutorStub */
-    public $executor;
-
-    public function setUp() {
-        parent::setUp();
-        $this->executor = new TestExecutorStub();
-    }
+    private $io;
 
     public function givenTheComposerJson($json) {
-        $json = $this->file->makeLocal($json);
-        $data = json_decode($json, true);
-        $data["name"] = "test/test";
-        $data["version"] = "1.0";
-        $this->file->givenTheFile_Containing('composer.json', json_encode($data));
+        $this->json = json_decode($json, true);
     }
 
-    public function whenIRunThePlugin() {
-        $composer = new Composer();
+    public function givenTheRemoteFile_Containing($fileUrl, $content) {
+        $this->remoteFiles[$fileUrl] = $content;
+    }
+
+    public function whenIRunComposerWithThePlugin() {
+        $factory = new Factory();
         $this->io = new BufferIO();
 
-        $file = new JsonFile($this->file->absolute('composer.json'));
-        $localConfig = $file->read();
+        $config = array_merge(array(
+                'config' => array(
+                        'vendor-dir' => __DIR__ . '/__tmp/vendor'
+                )
+        ), $this->json);
 
-        $config = new Config();
-        $config->merge($localConfig);
-        $composer->setConfig($config);
+        $composer = $factory->createComposer($this->io, $config);
 
-        $loader  = new ArrayLoader();
-        $package = $loader->load($localConfig, 'Composer\Package\RootPackage');
+        $composer->setLocker(new Locker($this->io, new JsonFile('not-existing'),
+                $composer->getRepositoryManager(), $composer->getInstallationManager(), ''));
 
-        $composer->setPackage($package);
+        $this->executor = new TestProcessExecutorMock();
+        $composer->getDownloadManager()->setDownloader('git', new GitDownloader($this->io, $composer->getConfig(), $this->executor));
 
-        $plugin = new FidoPlugin($this->file->tmpDir, $this->executor);
-        $plugin->activate($composer, $this->io);
-        $plugin->run();
+        $cache = new Cache($this->io, __DIR__ . '/__tmp/vendor/cache');
+        $rfs = new TestRemoteFileSystemMock($this->remoteFiles);
+
+        $composer->getDownloadManager()->setDownloader('file', new FileDownloader($this->io,
+                $composer->getConfig(), $composer->getEventDispatcher(), $cache, $rfs));
+
+        $composer->getPluginManager()->addPlugin(new FidoPlugin(__DIR__ . '/__tmp'));
+        $update = new UpdateCommand();
+        $update->setComposer($composer);
+        $update->setIO($this->io);
+
+        $update->run(new ArrayInput(array()), new BufferedOutput());
     }
 
     public function thenTheOutputShouldBe($output) {
@@ -62,13 +81,15 @@ class FidoFixture extends Fixture {
         $this->spec->assertContains($string, $this->file->makeRooted($this->io->getOutput()));
     }
 
-    public function thenItShouldExecute($string) {
-        foreach ($this->executor->executedCommands as $command) {
-            if ($this->file->makeRooted($command) == $string) {
+    public function then_ShouldBeExecuted($string) {
+        foreach ($this->executor->commands as $i => $command) {
+            $command = $this->file->makeRooted($command);
+            $this->executor->commands[$i] = $command;
+            if (strpos($command, $string) !== false) {
                 return;
             }
         }
-        $this->spec->fail("Could not find [$string] in " . print_r($this->executor->executedCommands, true));
+        $this->spec->fail("Could not find [$string] in " . print_r($this->executor->commands, true));
     }
 
 } 

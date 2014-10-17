@@ -14,55 +14,72 @@ class FromRepositoryTest extends Specification {
     function testCloneRepository() {
         $this->fido->givenTheComposerJson('{
             "extra":{
-                "require-assets": {
+                "fido-fetch": {
                     "some repo": {
                         "source":"https://example.com/some/repo.git"
                     }
                 }
             }
         }');
-        $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo.git');
+        $this->fido->whenIRunComposerWithThePlugin();
         $this->file->thenThereShouldBeADirectory('assets/vendor');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git repo 2>&1');
-    }
+        $this->fido->then_ShouldBeExecuted("git clone --no-checkout 'https://example.com/some/repo.git' 'vendor/fido/repo_git-7cd3d7da4878bedbcfde6f9a52615632'");
+        $this->fido->then_ShouldBeExecuted("git checkout 'master'");
 
-    function testUpdateRepository() {
-        $this->file->givenTheDirectory('assets/vendor/repo');
-        $this->fido->givenTheComposerJson('{
-            "extra":{
-                "require-assets": {
-                    "some repo": {
-                        "source":"https://example.com/some/repo.git"
-                    }
-                }
-            }
-        }');
-        $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldContain('Updating https://example.com/some/repo.git');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor/repo && git pull origin master 2>&1 && cd ..');
+        $this->fido->thenTheOutputShouldContain('Installing fido/repo_git-7cd3d7da4878bedbcfde6f9a52615632 (1.0)');
+        $this->fido->thenTheOutputShouldContain('Cloning master');
     }
 
     function testSpecifyTag() {
         $this->fido->givenTheComposerJson('{
             "extra":{
-                "require-assets": {
+                "fido-fetch": {
                     "some repo": {
                         "source":"https://example.com/some/repo.git",
-                        "tag":"some_tag"
+                        "reference":"v1.1"
                     }
                 }
             }
         }');
-        $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldContain('Using tag some_tag');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor && git clone https://example.com/some/repo.git repo 2>&1 && cd repo && git checkout some_tag 2>&1');
+        $this->fido->whenIRunComposerWithThePlugin();
+        $this->fido->thenTheOutputShouldContain('Cloning v1.1');
+    }
+
+    function testUpdateRepository() {
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "fido-fetch": {
+                    "some repo": {
+                        "source":"https://example.com/some/repo.git"
+                    }
+                }
+            }
+        }');
+        $this->fido->whenIRunComposerWithThePlugin();
+        $this->file->givenTheDirectory('vendor/fido/repo_git-7cd3d7da4878bedbcfde6f9a52615632/.git');
+        $this->fido->givenTheComposerJson('{
+            "extra":{
+                "fido-fetch": {
+                    "some repo": {
+                        "source":"https://example.com/some/repo.git",
+                        "reference": "1.1"
+                    }
+                }
+            }
+        }');
+        $this->fido->whenIRunComposerWithThePlugin();
+        $this->fido->then_ShouldBeExecuted('git fetch composer');
+        $this->fido->then_ShouldBeExecuted('git fetch --tags composer');
+        $this->fido->then_ShouldBeExecuted("git checkout '1.1'");
+
+        $this->fido->thenTheOutputShouldContain('Updating fido/repo_git-7cd3d7da4878bedbcfde6f9a52615632 (1.0 => 1.1)');
+        $this->fido->thenTheOutputShouldContain('Checking out 1.1');
     }
 
     function testSpecifyTargetFolder() {
         $this->fido->givenTheComposerJson('{
             "extra":{
-                "require-assets": {
+                "fido-fetch": {
                     "some repo": {
                         "source":"https://example.com/some/repo.git",
                         "target":"my/target"
@@ -70,40 +87,38 @@ class FromRepositoryTest extends Specification {
                 }
             }
         }');
-        $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo.git to $root/assets/vendor/my/target');
-        $this->fido->thenItShouldExecute('cd $root/assets/vendor/my && git clone https://example.com/some/repo.git target 2>&1');
+        $this->fido->whenIRunComposerWithThePlugin();
+        $this->fido->thenTheOutputShouldContain('vendor/fido/repo_git-7cd3d7da4878bedbcfde6f9a52615632 -> assets/vendor/my/target');
     }
 
     function testSourceAsKey() {
         $this->fido->givenTheComposerJson('{
             "extra":{
-                "require-assets": {
+                "fido-fetch": {
                     "https://example.com/some/repo.git":{}
                 }
             }
         }');
-        $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo.git');
+        $this->fido->whenIRunComposerWithThePlugin();
+        $this->fido->thenTheOutputShouldContain('Installing fido/repo_git-7cd3d7da4878bedbcfde6f9a52615632 (1.0)');
     }
 
     function testTagAsValue() {
         $this->fido->givenTheComposerJson('{
             "extra":{
-                "require-assets": {
-                    "https://example.com/some/repo.git":"some_tag"
+                "fido-fetch": {
+                    "https://example.com/some/repo.git":"v1.3"
                 }
             }
         }');
-        $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo.git');
-        $this->fido->thenTheOutputShouldContain('Using tag some_tag');
+        $this->fido->whenIRunComposerWithThePlugin();
+        $this->fido->thenTheOutputShouldContain('Cloning v1.3');
     }
 
     function testSpecifyType() {
         $this->fido->givenTheComposerJson('{
             "extra":{
-                "require-assets": {
+                "fido-fetch": {
                     "some repo": {
                         "source":"https://example.com/some/repo",
                         "type":"git"
@@ -111,8 +126,18 @@ class FromRepositoryTest extends Specification {
                 }
             }
         }');
-        $this->fido->whenIRunThePlugin();
-        $this->fido->thenTheOutputShouldContain('Cloning https://example.com/some/repo');
+        $this->fido->whenIRunComposerWithThePlugin();
+        $this->fido->thenTheOutputShouldContain('Installing fido/repo-85c6fea5a41a6e5852f7a986453fee60 (1.0)');
+    }
+
+    function testInRequire() {
+        $this->fido->givenTheComposerJson('{
+            "require": {
+                "fido-fetch:https://example.com/some/repo.git":"v1.3"
+            }
+        }');
+        $this->fido->whenIRunComposerWithThePlugin();
+        $this->fido->thenTheOutputShouldContain('Installing fido/repo_git-7cd3d7da4878bedbcfde6f9a52615632 (v1.3)');
     }
 
 } 
