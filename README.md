@@ -1,12 +1,14 @@
+
 #fido [![Build Status](https://travis-ci.org/watoki/fido.png?branch=master)](https://travis-ci.org/watoki/fido)
 
-A simple [composer] plugin fetches assets from URLs or git repositories.
+A simple [composer] plugin that simplifies installing packages without dependency management support (e.g. assets
+from URLs or git repositories).
 
 [composer]: https://getcomposer.org
 
 ## Installation ##
 
-You'll need [composer] and [git]. Then just add it to you composer requirements
+You'll need [composer] and [git]. Then just add *fido* to you composer requirements.
 
 ```js
 "require": {
@@ -19,42 +21,74 @@ You'll need [composer] and [git]. Then just add it to you composer requirements
 
 ## Usage ##
 
-The asset requirements go into the `extra` part of the `composer.json`. There is a short syntax and a complete syntax.
-In the short syntax, you define files with `<source>:<target>` and repositories with `<source>:<tag>`.
+The requirement definitions go into the `extra` object using the ke `fido-fetch`. Here is an example with two packages.
 
 ```js
 "extra": {
-    "require-assets": {
-        "https://code.jquery.com/jquery-2.1.1.js":"jquery.js",
-        "https://github.com/jonkemp/qunit-phantomjs-runner.git":"v1.1.0"
-    }
-}
-```
-
-Use the complete syntax for more options.
-
-```js
-"extra": {
-    "require-assets": {
+    "fido-fetch": {
         "base-dir": "web/assets/vendor", // defaults to "assets/vendor"
         "jquery": {
             "source": "https://code.jquery.com/jquery-2.1.1.js",
             "type": "file", // optional, inferred from source
-            "target": "jquery.js" // Optional
+            "target": "jquery.js" // Optional, defaults to file name
         },
         "phantom.js runner": {
             "source": "https://github.com/jonkemp/qunit-phantomjs-runner.git",
             "type": "git", // optional, inferred from source
-            "target": "phantomjs-runner", // Optional
-            "tag": "v1.2.0" // optional, defaults to "master"
+            "target": "phantomjs-runner", // Optional, defaults to repository name
+            "reference": "v1.2.0" // optional, defaults to "*"
         }
     }
 }
 ```
 
+This can be shortened in several steps. First, by leaving out the optional definitions.
+
+```js
+"extra": {
+    "fido-fetch": {
+        "jquery": {
+            "source": "https://code.jquery.com/jquery-2.1.1.js",
+        },
+        "phantom.js runner": {
+            "source": "https://github.com/jonkemp/qunit-phantomjs-runner.git",
+        }
+    }
+}
+```
+
+To shorten it even more, the value of `source` can be used as package names.
+
+```js
+"extra": {
+    "fido-fetch": {
+        "https://code.jquery.com/jquery-2.1.1.js": {},
+        "https://github.com/jonkemp/qunit-phantomjs-runner.git": {}
+    }
+}
+```
+
+Finally, these definitions can also be put into the `require` object (including versions for git repositories)
+by prefixing them with `fido-fetch:`.
+
+```js
+"require": {
+    "fido-fetch:https://code.jquery.com/jquery-2.1.1.js": "*",
+    "fido-fetch:https://github.com/jonkemp/qunit-phantomjs-runner.git": "v1.2.0"
+}
+```
+
+**Notice:** I you want use the last option, you need to require *fido* **first**
+
+    composer require watoki/fido
+
+## Dev Mode ##
+
+You can also specify packages for dev-mode only using the `fetch-fido-dev` and `require-dev` objects.
+
 ## Documentation ##
 
-For further documentation, check out *fido*'s [executable documentation][dox]
+For a complete documentation, check out *fido*'s [executable documentation][dox]
 
 [dox]: http://dox.rtens.org/projects/watoki-fido
 
@@ -66,7 +100,7 @@ There are of course several ways to get [bootstrap], [jquery] and their likes in
 You could use [bower] or [npm] for example or, if you don't like javascript, you can get the the excellent
 [bower/npm composer plugin][asset-plugin].
 
-But some packages, like the [qunit-phantomjs-runner], don't support any dependency management system. For these cases exists
+But some packages, like the [qunit-phantomjs-runner], don't support *any* dependency management system. For these cases exists
 composer's [`package` type repository][package-type] (thanks Igor for [pointing that out][tweet]).
 
 Now if you would like to have these packages in another directory than `vendor`, you can either symlink to them or
@@ -117,8 +151,7 @@ approach:
 }
 ```
 
-Compared with the compact syntax from above, this appears quite cumbersome. With *fido* you can achieve the same
-(and a little more) with way less code.
+And this is actually (more or less) what *fido* compiles to, simply with a shorter, simpler syntax.
 
 [bootstrap]: http://getbootstrap.com/
 [jquery]: http://jquery.com/
