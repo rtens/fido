@@ -78,7 +78,7 @@ by prefixing them with `fido-fetch:`.
 }
 ```
 
-**Notice:** I you want use the last option, you need to install first *fido* globally
+**Notice:** I you want use the last option, you need to first install *fido* globally
 
     composer global require watoki/fido
 
