@@ -18,10 +18,6 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
 
     const DEFAULT_BASE_DIR = 'assets/vendor';
 
-    const TYPE_GIT = 'git';
-
-    const TYPE_FILE = 'file';
-
     /** @var string */
     private $root;
 
@@ -29,13 +25,13 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
     private $baseDir = self::DEFAULT_BASE_DIR;
 
     /** @var Composer */
-    private $composer;
+    public $composer;
 
     /** @var IOInterface */
     private $io;
 
     /** @var array|string[] Targets to copy indexed by sources */
-    private $targets = array();
+    public $targets = array();
 
     function __construct($rootDir = '.') {
         $this->root = $rootDir;
@@ -82,23 +78,36 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
             }
 
             $source = $this->determineSource($key, $fetch);
-
             $name = $this->packageName($source);
             $requires[$name] = new Link($package->getName(), $name);
 
-            $type = $this->determineType($source, $fetch);
-            switch ($type) {
-                case self::TYPE_FILE:
-                    $this->fetchFile($fetch, $source, $name);
-                    break;
-                case self::TYPE_GIT:
-                    $this->fetchGit($fetch, $source, $name);
-                    break;
-                default:
-                    throw new \Exception("Cannot fetch [$key]: Unknown type [$type]");
+            try {
+                $this->createFetcher($this->determineType($source, $fetch))->fetch($fetch, $source, $name);
+            } catch (\Exception $e) {
+                throw new \Exception("Cannot fetch [$key]: " . $e->getMessage(), 0, $e);
             }
+
         }
         $package->setRequires($requires);
+    }
+
+    private function createFetcher($type) {
+        foreach ($this->createFetchers() as $fetcher) {
+            if ($fetcher->type() == $type) {
+                return $fetcher;
+            }
+        }
+        throw new \Exception("Unknown type [$type]");
+    }
+
+    /**
+     * @return array|Fetcher[]
+     */
+    private function createFetchers() {
+        return array(
+                new FileFetcher($this),
+                new GitFetcher($this)
+        );
     }
 
     private function findFetchesInRequire(Package $package) {
@@ -116,70 +125,6 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         $package->setRequires($requires);
 
         return $newFetches;
-    }
-
-    private function fetchFile($fetch, $source, $name) {
-        $target = $this->determineFileTarget($fetch, $source);
-        $this->targets[$name . DIRECTORY_SEPARATOR . basename($source)] = $target;
-
-        $this->composer->getRepositoryManager()->addRepository(new PackageRepository(array(
-                'type' => 'package',
-                'package' => array(
-                        'name' => $name,
-                        'version' => '1.0',
-                        "dist" => array(
-                                "url" => $source,
-                                "type" => self::TYPE_FILE
-                        )
-                )
-        )));
-    }
-
-    private function determineFileTarget($fetch, $source) {
-        if (is_string($fetch) && $fetch != '*') {
-            return $fetch;
-        } else if (isset($fetch['target'])) {
-            return $fetch['target'];
-        } else {
-            return basename($source);
-        }
-    }
-
-    private function fetchGit($fetch, $source, $name) {
-        $reference = $this->determineGitReference($fetch);
-        $target = $this->determineGitTarget($fetch, $source);
-        $this->targets[$name] = $target;
-
-        $this->composer->getRepositoryManager()->addRepository(new PackageRepository(array(
-                'type' => 'package',
-                'package' => array(
-                        'name' => $name,
-                        'version' => $reference ? : '1.0',
-                        "source" => array(
-                                "url" => $source,
-                                "type" => self::TYPE_GIT,
-                                "reference" => $reference ? : 'master'
-                        )
-                )
-        )));
-    }
-
-    private function determineGitReference($fetch) {
-        if (is_string($fetch)) {
-            return $fetch;
-        } else if (isset($fetch['reference'])) {
-            return $fetch['reference'];
-        } else {
-            return null;
-        }
-    }
-
-    private function determineGitTarget($fetch, $source) {
-        if (isset($fetch['target'])) {
-            return $fetch['target'];
-        } else {
-            return substr(basename($source), 0, -4);
-        }
     }
 
     private function setBaseDir($fetches) {
@@ -200,7 +145,7 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         if (isset($fetch['type'])) {
             return $fetch['type'];
         }
-        return substr($source, -4) == '.git' ? self::TYPE_GIT : self::TYPE_FILE;
+        return substr($source, -4) == '.git' ? GitFetcher::TYPE : FileFetcher::TYPE;
     }
 
     private function packageName($source) {
