@@ -45,6 +45,9 @@ class ComposerFixture extends Fixture {
         $config = array_merge(array(
                 'config' => array(
                         'vendor-dir' => __DIR__ . '/__tmp/vendor'
+                ),
+                'repositories' => array(
+                        'packagist' => false
                 )
         ), $this->json);
 
