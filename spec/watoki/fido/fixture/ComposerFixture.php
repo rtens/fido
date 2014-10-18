@@ -3,16 +3,13 @@ namespace spec\watoki\fido\fixture;
 
 use Composer\Cache;
 use Composer\Command\UpdateCommand;
-use Composer\Composer;
 use Composer\Config;
 use Composer\Downloader\FileDownloader;
 use Composer\Downloader\GitDownloader;
 use Composer\Factory;
 use Composer\IO\BufferIO;
 use Composer\Json\JsonFile;
-use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\Locker;
-use Composer\Script\Event;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use watoki\fido\FidoPlugin;
@@ -21,7 +18,7 @@ use watoki\scrut\Fixture;
 /**
  * @property FileFixture file <-
  */
-class FidoFixture extends Fixture {
+class ComposerFixture extends Fixture {
 
     private $remoteFiles = array();
 

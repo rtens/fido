@@ -7,7 +7,6 @@ use Composer\IO\IOInterface;
 use Composer\Package\Link;
 use Composer\Plugin\PluginInterface;
 use Composer\Repository\PackageRepository;
-use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 
 class FidoPlugin implements PluginInterface, EventSubscriberInterface {
@@ -36,20 +35,12 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
     /** @var array|string[] Targets to copy indexed by sources */
     private $targets = array();
 
-    private $devs = array();
-
     function __construct($rootDir = '.') {
         $this->root = $rootDir;
     }
 
     public static function getSubscribedEvents() {
         return array(
-                ScriptEvents::PRE_UPDATE_CMD=> array(
-                        array('pre', 0),
-                ),
-                ScriptEvents::PRE_INSTALL_CMD=> array(
-                        array('pre', 0),
-                ),
                 ScriptEvents::POST_AUTOLOAD_DUMP => array(
                         array('finish', 0),
                 ),
@@ -85,20 +76,6 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
             }
         }
 
-        $devRequires = array();
-        $devs = array();
-        foreach ($package->getDevRequires() as $name => $require) {
-            if (substr($name, 0, strlen(self::REQUIRE_PREFIX)) == self::REQUIRE_PREFIX) {
-                $version = $require->getPrettyConstraint();
-                $key = substr($name, strlen(self::REQUIRE_PREFIX));
-                $fetches[$key] = $version ? : array();
-                $devs[] = $key;
-            } else {
-                $devRequires[$name] = $require;
-            }
-        }
-        $package->setDevRequires($devRequires);
-
         $this->baseDir = self::DEFAULT_BASE_DIR;
         if (isset($fetches['base-dir'])) {
             $this->baseDir = $fetches['base-dir'];
@@ -114,10 +91,6 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
             }
             $name = 'fido/' . str_replace('.', '_', basename($source)) . '-' . md5($source);
             $requires[$name] = new Link($package->getName(), $name);
-
-            if (in_array($key, $devs)) {
-                $this->devs[] = $name;
-            }
 
             $type = substr($source, -4) == '.git' ? self::TYPE_GIT : self::TYPE_FILE;
             if (isset($fetch['type'])) {
@@ -181,21 +154,6 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         $package->setRequires($requires);
     }
 
-    public function pre(Event $event) {
-        if ($event->isDevMode()) {
-            return;
-        }
-
-        $requires = $this->composer->getPackage()->getRequires();
-        foreach ($requires as $name => $link) {
-            if (in_array($name, $this->devs)) {
-                unset($requires[$name]);
-            }
-        }
-        var_dump(array_keys($requires));
-        $this->composer->getPackage()->setRequires($requires);
-    }
-
     public function finish() {
         $this->io->write("<info>Copying fido's fetches</info>");
         $this->clear($this->root . DIRECTORY_SEPARATOR . $this->baseDir);
@@ -209,9 +167,6 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
     }
 
     private function copy($source, $target) {
-        if (!file_exists($source)) {
-            return;
-        }
         if (!is_dir($source)) {
             if (!file_exists(dirname($target))) {
                 mkdir(dirname($target), 0777, true);
