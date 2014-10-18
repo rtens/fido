@@ -17,6 +17,7 @@ use watoki\scrut\Fixture;
 
 /**
  * @property FileFixture file <-
+ * @property \watoki\scrut\ExceptionFixture try <-
  */
 class ComposerFixture extends Fixture {
 
@@ -36,6 +37,10 @@ class ComposerFixture extends Fixture {
 
     public function givenTheRemoteFile_Containing($fileUrl, $content) {
         $this->remoteFiles[$fileUrl] = $content;
+    }
+
+    public function whenITryToRunComposerWithThePlugin() {
+        $this->try->tryTo(array($this, 'whenIRunComposerWithThePlugin'));
     }
 
     public function whenIRunComposerWithThePlugin() {

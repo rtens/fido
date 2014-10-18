@@ -9,6 +9,7 @@ use watoki\scrut\Specification;
 /**
  * @property FileFixture file <-
  * @property ComposerFixture $fix <-
+ * @property \watoki\scrut\ExceptionFixture try <-
  */
 class FromFileTest extends Specification {
 
@@ -105,6 +106,22 @@ class FromFileTest extends Specification {
         }');
         $this->fix->whenIRunComposerWithThePlugin();
         $this->file->thenThereShouldBeAFile_Containing("assets/vendor/file.git", "Got git");
+    }
+
+    function testInvalidType() {
+        $this->fix->givenTheRemoteFile_Containing("http://example.com/some/file.git", "Got git");
+        $this->fix->givenTheComposerJson('{
+            "extra": {
+                "fido-fetch": {
+                    "some asset": {
+                        "source":"http://example.com/some/file.git",
+                        "type":"invalid"
+                    }
+                }
+            }
+        }');
+        $this->fix->whenITryToRunComposerWithThePlugin();
+        $this->try->thenTheException_ShouldBeThrown('Cannot fetch [some asset]: Unknown type [invalid]');
     }
 
     function testInRequire() {
