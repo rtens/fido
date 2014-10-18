@@ -10,7 +10,7 @@ from URLs or git repositories).
 
 Because of [composer]'s plugin system, you need to install *fido* globally
 
-    composer global require "watoki/fido:master-dev"
+    composer global require "watoki/fido:~1.0"
 
 (there is a [pull request] to fix that)
 
