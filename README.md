@@ -8,16 +8,14 @@ from URLs or git repositories).
 
 ## Installation ##
 
-You'll need [composer] and [git]. Then just add *fido* to you composer requirements.
+Because of [composer]'s plugin system, you need to install *fido* globally
 
-```js
-"require": {
-    "watoki/fido":"*"
-},
-"minimum-stability": "dev"
-```
+    composer global require "watoki/fido:master-dev"
+
+(there is a [pull request] to fix that)
 
 [git]: http://git-scm.com/
+[pull request]: https://github.com/composer/composer/pull/3082
 
 ## Usage ##
 
@@ -77,10 +75,6 @@ by prefixing them with `fido-fetch:`.
     "fido-fetch:https://github.com/jonkemp/qunit-phantomjs-runner.git": "v1.2.0"
 }
 ```
-
-**Notice:** I you want use the last option, you need to first install *fido* globally
-
-    composer global require watoki/fido
 
 ## Dev Mode ##
 
