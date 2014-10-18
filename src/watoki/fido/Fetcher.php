@@ -1,17 +1,27 @@
 <?php
 namespace watoki\fido;
 
+use Composer\Composer;
+
 abstract class Fetcher {
 
-    /** @var \watoki\fido\FidoPlugin */
-    protected $plugin;
+    /** @var \Composer\Composer */
+    protected $composer;
 
-    function __construct(FidoPlugin $plugin) {
-        $this->plugin = $plugin;
+    function __construct(Composer $composer) {
+        $this->composer = $composer;
     }
 
+    /**
+     * @return string
+     */
     abstract public function type();
 
-    abstract public function fetch($fetch, $source, $name);
+    /**
+     * @param array $data
+     * @param string $name
+     * @return array Files to be copied: <source> => <target>
+     */
+    abstract public function fetch($data, $name);
 
 } 

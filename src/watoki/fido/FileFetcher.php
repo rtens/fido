@@ -11,28 +11,29 @@ class FileFetcher extends Fetcher {
         return self::TYPE;
     }
 
-    public function fetch($fetch, $source, $name) {
-        $this->plugin->targets[$name . DIRECTORY_SEPARATOR . basename($source)] = $this->determineTarget($fetch, $source);
-        $this->plugin->composer->getRepositoryManager()->addRepository(new PackageRepository(array(
+    public function fetch($data, $name) {
+        $this->composer->getRepositoryManager()->addRepository(new PackageRepository(array(
                 'type' => 'package',
                 'package' => array(
                         'name' => $name,
                         'version' => '1.0',
                         'dist' => array(
-                                'url' => $source,
+                                'url' => $data['source'],
                                 'type' => $this->type()
                         )
                 )
         )));
+
+        return array($name . DIRECTORY_SEPARATOR . basename($data['source']) => $this->determineTarget($data));
     }
 
-    private function determineTarget($fetch, $source) {
-        if (is_string($fetch) && $fetch != '*') {
-            return $fetch;
-        } else if (isset($fetch['target'])) {
-            return $fetch['target'];
+    private function determineTarget($data) {
+        if (isset($data['value']) && $data['value'] != '*') {
+            return $data['value'];
+        } else if (isset($data['target'])) {
+            return $data['target'];
         } else {
-            return basename($source);
+            return basename($data['source']);
         }
     }
 }

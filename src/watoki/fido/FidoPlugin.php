@@ -7,7 +7,6 @@ use Composer\IO\IOInterface;
 use Composer\Package\Link;
 use Composer\Package\Package;
 use Composer\Plugin\PluginInterface;
-use Composer\Repository\PackageRepository;
 use Composer\Script\ScriptEvents;
 
 class FidoPlugin implements PluginInterface, EventSubscriberInterface {
@@ -61,53 +60,20 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
     public function start() {
         $package = $this->composer->getPackage();
 
-        $extra = $package->getExtra();
+        $fetches = array_merge(
+                $this->getFetchesInExtra($package),
+                $this->findFetchesInRequire($package));
+
+        $this->processFetches($package, $fetches);
+    }
+
+    private function getFetchesInExtra(Package $package) {
         $fetches = array();
+        $extra = $package->getExtra();
         if (!empty($extra[self::EXTRA_REQUIRE_KEY])) {
             $fetches = $extra[self::EXTRA_REQUIRE_KEY];
         };
-
-        $fetches = array_merge($fetches, $this->findFetchesInRequire($package));
-
-        $this->setBaseDir($fetches);
-
-        $requires = $package->getRequires();
-        foreach ($fetches as $key => $fetch) {
-            if ($key == 'base-dir') {
-                continue;
-            }
-
-            $source = $this->determineSource($key, $fetch);
-            $name = $this->packageName($source);
-            $requires[$name] = new Link($package->getName(), $name);
-
-            try {
-                $this->createFetcher($this->determineType($source, $fetch))->fetch($fetch, $source, $name);
-            } catch (\Exception $e) {
-                throw new \Exception("Cannot fetch [$key]: " . $e->getMessage(), 0, $e);
-            }
-
-        }
-        $package->setRequires($requires);
-    }
-
-    private function createFetcher($type) {
-        foreach ($this->createFetchers() as $fetcher) {
-            if ($fetcher->type() == $type) {
-                return $fetcher;
-            }
-        }
-        throw new \Exception("Unknown type [$type]");
-    }
-
-    /**
-     * @return array|Fetcher[]
-     */
-    private function createFetchers() {
-        return array(
-                new FileFetcher($this),
-                new GitFetcher($this)
-        );
+        return $fetches;
     }
 
     private function findFetchesInRequire(Package $package) {
@@ -127,29 +93,83 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
         return $newFetches;
     }
 
+    private function processFetches(Package $package, $fetches) {
+        $this->setBaseDir($fetches);
+
+        $requires = $package->getRequires();
+        foreach ($fetches as $key => $data) {
+            if ($key == 'base-dir') {
+                continue;
+            }
+
+            $name = $this->fetch($key, $data);
+            $requires[$name] = new Link($package->getName(), $name);
+        }
+        $package->setRequires($requires);
+    }
+
+    private function fetch($key, $data) {
+        $data = $this->handleShortSyntax($key, $data);
+        $name = $this->packageName($data['source']);
+
+        try {
+            $fetcher = $this->createFetcher($this->determineType($data));
+            $this->targets += $fetcher->fetch($data, $name);
+        } catch (\Exception $e) {
+            throw new \Exception("Cannot fetch [$key]: " . $e->getMessage(), 0, $e);
+        }
+
+        return $name;
+    }
+
     private function setBaseDir($fetches) {
         if (isset($fetches['base-dir'])) {
             $this->baseDir = $fetches['base-dir'];
         }
     }
 
-    private function determineSource($key, $fetch) {
-        if (isset($fetch['source'])) {
-            return $fetch['source'];
-        } else {
-            return $key;
+    private function handleShortSyntax($key, $value) {
+        if (is_string($value)) {
+            $value = array(
+                    'value' => $value
+            );
         }
-    }
 
-    private function determineType($source, $fetch) {
-        if (isset($fetch['type'])) {
-            return $fetch['type'];
+        if (!isset($value['source'])) {
+            $value['source'] = $key;
         }
-        return substr($source, -4) == '.git' ? GitFetcher::TYPE : FileFetcher::TYPE;
+
+        return $value;
     }
 
     private function packageName($source) {
         return 'fido/' . str_replace('.', '_', basename($source)) . '-' . md5($source);
+    }
+
+    private function createFetcher($type) {
+        foreach ($this->createFetchers() as $fetcher) {
+            if ($fetcher->type() == $type) {
+                return $fetcher;
+            }
+        }
+        throw new \Exception("Unknown type [$type]");
+    }
+
+    /**
+     * @return array|Fetcher[]
+     */
+    private function createFetchers() {
+        return array(
+                new FileFetcher($this->composer),
+                new GitFetcher($this->composer)
+        );
+    }
+
+    private function determineType($data) {
+        if (isset($data['type'])) {
+            return $data['type'];
+        }
+        return substr($data['source'], -4) == '.git' ? GitFetcher::TYPE : FileFetcher::TYPE;
     }
 
     public function finish() {

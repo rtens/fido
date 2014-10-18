@@ -11,40 +11,40 @@ class GitFetcher extends Fetcher {
         return self::TYPE;
     }
 
-    public function fetch($fetch, $source, $name) {
-        $reference = $this->determineGitReference($fetch);
-        $target = $this->determineGitTarget($fetch, $source);
-        $this->plugin->targets[$name] = $target;
+    public function fetch($data, $name) {
+        $reference = $this->determineGitReference($data);
 
-        $this->plugin->composer->getRepositoryManager()->addRepository(new PackageRepository(array(
+        $this->composer->getRepositoryManager()->addRepository(new PackageRepository(array(
                 'type' => 'package',
                 'package' => array(
                         'name' => $name,
                         'version' => $reference ? : '1.0',
                         "source" => array(
-                                "url" => $source,
+                                "url" => $data['source'],
                                 "type" => $this->type(),
                                 "reference" => $reference ? : 'master'
                         )
                 )
         )));
+
+        return array($name => $this->determineTarget($data));
     }
 
-    private function determineGitReference($fetch) {
-        if (is_string($fetch)) {
-            return $fetch;
-        } else if (isset($fetch['reference'])) {
-            return $fetch['reference'];
+    private function determineGitReference($data) {
+        if (isset($data['value'])) {
+            return $data['value'];
+        } else if (isset($data['reference'])) {
+            return $data['reference'];
         } else {
             return null;
         }
     }
 
-    private function determineGitTarget($fetch, $source) {
-        if (isset($fetch['target'])) {
-            return $fetch['target'];
+    private function determineTarget($data) {
+        if (isset($data['target'])) {
+            return $data['target'];
         } else {
-            return substr(basename($source), 0, -4);
+            return substr(basename($data['source']), 0, -4);
         }
     }
 }
