@@ -211,6 +211,10 @@ class FidoPlugin implements PluginInterface, EventSubscriberInterface {
     }
 
     private function finishWith($baseDir, $targets) {
+        if (!$baseDir) {
+            return;
+        }
+
         $this->clear($this->root . DIRECTORY_SEPARATOR . $baseDir);
         foreach ($targets as $source => $target) {
             $to = $baseDir . DIRECTORY_SEPARATOR . $target;
