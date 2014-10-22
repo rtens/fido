@@ -56,7 +56,7 @@ class ComposerFixture extends Fixture {
                 )
         ), $this->json);
 
-        $composer = $factory->createComposer($this->io, $config);
+        $composer = $factory->createComposer($this->io, $config, true);
 
         $composer->setLocker(new Locker($this->io, new JsonFile('not-existing'),
                 $composer->getRepositoryManager(), $composer->getInstallationManager(), ''));
