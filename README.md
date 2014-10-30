@@ -1,5 +1,5 @@
 
-#fido [![Build Status](https://travis-ci.org/watoki/fido.png?branch=master)](https://travis-ci.org/watoki/fido)
+#fido [![Build Status](https://travis-ci.org/rtens/fido.png?branch=master)](https://travis-ci.org/rtens/fido)
 
 A simple [composer] plugin that simplifies installing packages without dependency management support (e.g. assets
 from URLs or git repositories).
@@ -10,7 +10,7 @@ from URLs or git repositories).
 
 Because of [composer]'s plugin system, you need to install *fido* globally
 
-    composer global require "watoki/fido:~1.0"
+    composer global require "rtens/fido:~1.0"
 
 (there is a [pull request] to fix that)
 
