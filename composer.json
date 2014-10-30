@@ -1,5 +1,5 @@
 {
-    "name": "watoki/fido",
+    "name": "rtens/fido",
     "description": "Asset fetcher for PHP",
     "keywords": ["asset", "composer", "watoki"],
     "homepage": "http://github.com/watoki/fido",
