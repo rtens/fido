@@ -62,7 +62,10 @@ class FileFixture extends Fixture {
     }
 
     public function makeRooted($string) {
-        return str_replace($this->tmpDir . DIRECTORY_SEPARATOR, '', $string);
+        $string = str_replace('"', "'", $string);
+        $string = str_replace($this->tmpDir . DIRECTORY_SEPARATOR, '', $string);
+        $string = str_replace('\\', '/', $string);
+        return $string;
     }
 
     private function putContent($file, $content) {
