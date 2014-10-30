@@ -1,5 +1,5 @@
 <?php
-namespace watoki\fido;
+namespace rtens\fido;
 
 use Composer\Composer;
 

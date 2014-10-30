@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\fido\fixture;
+namespace spec\rtens\fido\fixture;
 
 use Composer\Cache;
 use Composer\Command\UpdateCommand;
@@ -12,7 +12,7 @@ use Composer\Json\JsonFile;
 use Composer\Package\Locker;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use watoki\fido\FidoPlugin;
+use rtens\fido\FidoPlugin;
 use watoki\scrut\Fixture;
 
 /**

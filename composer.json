@@ -1,8 +1,8 @@
 {
     "name": "rtens/fido",
     "description": "Asset fetcher for PHP",
-    "keywords": ["asset", "composer", "watoki"],
-    "homepage": "http://github.com/watoki/fido",
+    "keywords": ["asset", "composer", "rtens"],
+    "homepage": "http://github.com/rtens/fido",
     "type": "composer-plugin",
     "license": "MIT",
     "authors": [
@@ -22,16 +22,16 @@
     },
     "autoload": {
         "psr-4": {
-            "watoki\\": "src/watoki"
+            "rtens\\": "src/rtens"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "spec\\watoki\\": "spec/watoki"
+            "spec\\rtens\\": "spec/rtens"
         }
     },
     "extra": {
-        "class": "watoki\\fido\\FidoPlugin"
+        "class": "rtens\\fido\\FidoPlugin"
     },
     "minimum-stability": "dev"
 }

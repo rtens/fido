@@ -1,8 +1,8 @@
 <?php
-namespace spec\watoki\fido;
+namespace spec\rtensfido;
 
-use spec\watoki\fido\fixture\ComposerFixture;
-use spec\watoki\fido\fixture\FileFixture;
+use spec\rtens\fido\fixture\ComposerFixture;
+use spec\rtens\fido\fixture\FileFixture;
 use watoki\scrut\Specification;
 
 /**

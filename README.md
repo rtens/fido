@@ -84,7 +84,7 @@ You can also specify packages for dev-mode only using the `fetch-fido-dev` and `
 
 For a complete documentation, check out *fido*'s [executable documentation][dox]
 
-[dox]: http://dox.rtens.org/projects/watoki-fido
+[dox]: http://dox.rtens.org/projects/rtens-fido
 
 ## But.. why? ##
 

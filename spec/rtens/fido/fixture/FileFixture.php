@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\fido\fixture;
+namespace spec\rtens\fido\fixture;
 
 use watoki\scrut\Fixture;
 

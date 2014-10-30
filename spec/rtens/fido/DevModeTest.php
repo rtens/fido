@@ -1,11 +1,11 @@
 <?php
-namespace spec\watoki\fido;
+namespace spec\rtens\fido;
 
 use watoki\scrut\Specification;
 
 /**
- * @property \spec\watoki\fido\fixture\ComposerFixture fix <-
- * @property \spec\watoki\fido\fixture\FileFixture file <-
+ * @property \spec\rtens\fido\fixture\ComposerFixture fix <-
+ * @property \spec\rtens\fido\fixture\FileFixture file <-
  */
 class DevModeTest extends Specification {
 
